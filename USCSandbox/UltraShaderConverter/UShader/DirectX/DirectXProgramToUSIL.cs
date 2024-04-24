@@ -412,6 +412,15 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
                                 ConvertFloatToInt((float)dxOperand.immValues[0])
                             };
                         }
+                        else if (double.IsNaN(dxOperand.immValues[0]) 
+                                 || Math.Abs(((BitConverter.DoubleToInt64Bits(dxOperand.immValues[0]) >> 52) & 0x7ff) - 1023)
+                                     is > 100 and < 1023)
+                        {
+                            usilOperand.immValueFloat = new float[1]
+                            {
+                                ConvertFloatToInt((float)dxOperand.immValues[0])
+                            };
+                        }
                         else
                         {
                             usilOperand.immValueFloat = new float[1]
@@ -430,12 +439,31 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
                                 usilOperand.immValueInt[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
                             }
                         }
-                        else
+                        else if (dxOperand.immValues
+                                 .Any(x => double.IsNaN(x) 
+                                           || Math.Abs(((BitConverter.DoubleToInt64Bits(x) >> 52) & 0x7ff) - 1023)
+                                               is > 100 and < 1023))
+                        {
+                            usilOperand.immValueFloat = new float[mask.Length];
+                            for (int i = 0; i < mask.Length; i++)
+                            {
+                                usilOperand.immValueFloat[i] = ConvertFloatToInt((float)dxOperand.immValues[mask[i]]);
+                            }
+                        }
+                        else if (mask.Length > 0)
                         {
                             usilOperand.immValueFloat = new float[mask.Length];
                             for (int i = 0; i < mask.Length; i++)
                             {
                                 usilOperand.immValueFloat[i] = (float)dxOperand.immValues[mask[i]];
+                            }
+                        }
+                        else
+                        {
+                            usilOperand.immValueFloat = new float[dxOperand.immValues.Length];
+                            for (int i = 0; i < dxOperand.immValues.Length; i++)
+                            {
+                                usilOperand.immValueFloat[i] = (float)dxOperand.immValues[i];
                             }
                         }
                     }
@@ -1288,8 +1316,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle.Length >= 2 ? src0.swizzle[..2] : src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle.Length >= 2 ? src1.swizzle[..2] : src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct2;
             usilInst.destOperand = usilDest;
@@ -1316,8 +1344,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1, 2 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle.Length >= 3 ? src0.swizzle[..3] : src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle.Length >= 3 ? src1.swizzle[..3] : src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct3;
             usilInst.destOperand = usilDest;
@@ -1344,8 +1372,8 @@ namespace AssetRipper.Export.Modules.Shaders.UltraShaderConverter.UShader.Direct
 
             int[] mask = new int[] { 0, 1, 2, 3 };
             FillUSILOperand(dest, usilDest, dest.swizzle, false);
-            FillUSILOperand(src0, usilSrc0, MapMask(mask, src0.swizzle), false);
-            FillUSILOperand(src1, usilSrc1, MapMask(mask, src1.swizzle), false);
+            FillUSILOperand(src0, usilSrc0, src0.swizzle, false);
+            FillUSILOperand(src1, usilSrc1, src1.swizzle, false);
 
             usilInst.instructionType = USILInstructionType.DotProduct4;
             usilInst.destOperand = usilDest;
