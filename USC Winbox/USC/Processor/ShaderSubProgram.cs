@@ -1,10 +1,13 @@
 ﻿using AssetRipper.Primitives;
 using AssetsTools.NET;
+using NLog;
 
 namespace USCSandbox.Processor
 {
     public class ShaderSubProgram
     {
+        private static NLog.Logger _logger = LogManager.GetCurrentClassLogger();
+
         public int ProgramType;
         public int StatsALU;
         public int StatsTEX;
@@ -21,6 +24,7 @@ namespace USCSandbox.Processor
 
         public ShaderSubProgram(AssetsFileReader r, UnityVersion version)
         {
+            //_logger.Info($"r position: {r.Position}");
             var hasStatsTempRegister = version.GreaterThanOrEquals(5, 5);
             var hasLocalKeywords = version.LessThan(2021, 2) && version.GreaterThanOrEquals(2019, 1);
 
@@ -35,6 +39,17 @@ namespace USCSandbox.Processor
             }
 
             var globalKeywordCount = r.ReadInt32();
+            //_logger.Info($"globalKeywordCount: {globalKeywordCount}");
+
+            var remainingBytes = r.BaseStream.Length - r.Position;
+            var globalKeywordCountTotalSize = globalKeywordCount * sizeof(int);
+
+            if (globalKeywordCountTotalSize > (remainingBytes))
+            {
+                _logger.Error($"Global keyword remainingBytes: {remainingBytes}");
+                return;
+            }
+
             GlobalKeywords = new List<string>(globalKeywordCount);
             for (var i = 0; i < globalKeywordCount; i++)
             {
@@ -44,6 +59,17 @@ namespace USCSandbox.Processor
             if (hasLocalKeywords)
             {
                 var localKeywordCount = r.ReadInt32();
+                _logger.Info($"localKeywordCount: {localKeywordCount}");
+
+                remainingBytes = r.BaseStream.Length - r.Position;
+                var localKeywordCountTotalSize = localKeywordCount * sizeof(int);
+
+                if (localKeywordCountTotalSize > (remainingBytes))
+                {
+                    _logger.Error($"Local remainingBytes: {remainingBytes}");
+                    return;
+                }
+
                 LocalKeywords = new List<string>(localKeywordCount);
                 for (var i = 0; i < localKeywordCount; i++)
                 {
@@ -54,6 +80,12 @@ namespace USCSandbox.Processor
             else
             {
                 LocalKeywords = new List<string>(0);
+            }
+
+            if (r.Position >= r.BaseStream.Length)
+            {
+                _logger.Error("End of stream.");
+                return;
             }
 
             var programDataSize = r.ReadInt32();

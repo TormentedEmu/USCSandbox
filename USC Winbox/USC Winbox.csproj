@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>USC_Winbox</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="USC\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="NLog.Schema" Version="5.2.8" />
+    <PackageReference Include="NLog.Windows.Forms" Version="5.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AssetRipper.Primitives">
+      <HintPath>..\Libs\AssetRipper.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="AssetsTools.NET">
+      <HintPath>..\Libs\AssetsTools.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.Common">
+      <HintPath>..\Libs\Ryujinx.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Ryujinx.Graphics.Shader">
+      <HintPath>..\Libs\Ryujinx.Graphics.Shader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
